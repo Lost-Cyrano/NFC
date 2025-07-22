@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection NFC complète</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .result {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+        }
+        .supported {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .not-supported {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .info {
+            background-color: #e2e3e5;
+            color: #383d41;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h1 {
+            color: #333;
+        }
+        #details {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test complet de la fonctionnalité NFC</h1>
+    <p>Ce test vérifie en détail les capacités NFC de votre appareil.</p>
+    
+    <div id="result" class="result">
+        Analyse en cours...
+    </div>
+
+    <button id="checkButton" style="display:none;">Demander l'autorisation NFC</button>
+    <button id="detailsButton">Afficher les détails techniques</button>
+    
+    <div id="details">
+        <h3>Détails techniques :</h3>
+        <p id="techDetails">Chargement...</p>
+    </div>
+    
+    <div class="info">
+        <h3>À propos des différents statuts :</h3>
+        <ul>
+            <li><strong>Fonctionnalité disponible</strong> : Votre appareil supporte le NFC et les autorisations sont accordées.</li>
+            <li><strong>Autorisation nécessaire</strong> : Votre appareil a le NFC mais nécessite votre permission pour l'utiliser.</li>
+            <li><strong>Capacité matérielle manquante</strong> : Votre appareil ne possède pas de module NFC.</li>
+            <li><strong>Support limité</strong> : Votre appareil a le NFC mais le navigateur ne permet pas son utilisation.</li>
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const resultElement = document.getElementById('result');
+            const checkButton = document.getElementById('checkButton');
+            const detailsButton = document.getElementById('detailsButton');
+            const techDetails = document.getElementById('techDetails');
+            const detailsDiv = document.getElementById('details');
+            
+            let hasNFC = false;
+            let hasPermission = false;
+            let detailedMessage = "";
+            
+            // Détection de base
+            if ('NDEFReader' in window) {
+                hasNFC = true;
+                detailedMessage = "API Web NFC (NDEFReader) détectée.\n";
+            } else if ('nfc' in navigator) {
+                hasNFC = true;
+                detailedMessage = "API NFC alternative détectée.\n";
+            } else {
+                detailedMessage = "Aucune API NFC détectée.\n";
+            }
+            
+            // Vérification des permissions si NFC est disponible
+            if (hasNFC) {
+                try {
+                    // Tentative de vérification des permissions
+                    const permissionStatus = await navigator.permissions.query({
+                        name: 'nfc'
+                    });
+                    
+                    detailedMessage += `Statut de permission: ${permissionStatus.state}\n`;
+                    
+                    if (permissionStatus.state === 'granted') {
+                        hasPermission = true;
+                    } else if (permissionStatus.state === 'prompt') {
+                        checkButton.style.display = 'inline-block';
+                    }
+                } catch (e) {
+                    detailedMessage += `Erreur de vérification des permissions: ${e.message}\n`;
+                    checkButton.style.display = 'inline-block';
+                }
+            }
+            
+            // Détection de l'appareil
+            const isAndroid = navigator.userAgent.match(/Android/i);
+            const isIOS = navigator.userAgent.match(/iPhone|iPad|iPod/i);
+            
+            detailedMessage += `Appareil: ${isAndroid ? 'Android' : isIOS ? 'iOS' : 'Autre'}\n`;
+            detailedMessage += `Navigateur: ${navigator.userAgent}\n`;
+            
+            // Messages finaux
+            if (hasNFC && hasPermission) {
+                resultElement.textContent = "✅ NFC pleinement fonctionnel! Votre appareil supporte le NFC et les autorisations sont accordées.";
+                resultElement.className = "result supported";
+                detailedMessage += "Statut: NFC fonctionnel avec permissions\n";
+            } else if (hasNFC) {
+                resultElement.textContent = "⚠️ Votre appareil a la capacité NFC mais nécessite une autorisation.";
+                resultElement.className = "result warning";
+                detailedMessage += "Statut: NFC présent mais permissions manquantes\n";
+            } else if (isAndroid) {
+                resultElement.textContent = "❌ Votre appareil Android pourrait avoir le NFC, mais cette fonctionnalité n'est pas disponible via le navigateur web.";
+                resultElement.className = "result not-supported";
+                detailedMessage += "Statut: Android avec support navigateur limité\n";
+            } else if (isIOS) {
+                resultElement.textContent = "❌ Les iPhones ont des capacités NFC limitées et l'accès via le navigateur web est très restreint.";
+                resultElement.className = "result not-supported";
+                detailedMessage += "Statut: iOS avec support NFC limité\n";
+            } else {
+                resultElement.textContent = "❌ Votre appareil ne semble pas avoir de capacité NFC ou cette fonctionnalité n'est pas exposée par le navigateur.";
+                resultElement.className = "result not-supported";
+                detailedMessage += "Statut: Pas de support NFC détecté\n";
+            }
+            
+            // Bouton pour demander l'autorisation
+            checkButton.addEventListener('click', async () => {
+                try {
+                    // Tentative d'utilisation du NFC pour déclencher la demande de permission
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    resultElement.textContent = "✅ Autorisation NFC accordée! Vous pouvez maintenant utiliser les fonctionnalités NFC.";
+                    resultElement.className = "result supported";
+                    checkButton.style.display = 'none';
+                    detailedMessage += "Utilisateur a accordé les permissions NFC\n";
+                } catch (error) {
+                    resultElement.textContent = `❌ Erreur lors de la demande d'autorisation: ${error.message}`;
+                    resultElement.className = "result not-supported";
+                    detailedMessage += `Erreur de permission: ${error.message}\n`;
+                }
+            });
+            
+            // Bouton pour afficher les détails
+            techDetails.textContent = detailedMessage;
+            detailsButton.addEventListener('click', () => {
+                if (detailsDiv.style.display === 'block') {
+                    detailsDiv.style.display = 'none';
+                    detailsButton.textContent = 'Afficher les détails techniques';
+                } else {
+                    detailsDiv.style.display = 'block';
+                    detailsButton.textContent = 'Masquer les détails techniques';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
