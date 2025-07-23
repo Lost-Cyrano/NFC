@@ -3,248 +3,438 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfert NFC Automatique</title>
+    <title>Partage Contact NFC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            max-width: 100%;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
-            background-color: #f8f9fa;
         }
-        #container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        #status {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-weight: 500;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .reception {
-            background-color: #e3f2fd;
-            color: #0d47a1;
-        }
-        .emission {
-            background-color: #e8f5e9;
-            color: #1b5e20;
-        }
-        .error {
-            background-color: #ffebee;
-            color: #b71c1c;
-        }
-        #message {
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            min-height: 120px;
-            padding: 12px;
-            margin: 15px 0;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            resize: none;
+            max-width: 500px;
+            overflow: hidden;
+            position: relative;
         }
-        #message:focus {
-            border-color: #2196f3;
+        
+        .header {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .info-card {
+            background: linear-gradient(to right, #f5f7fa, #e4edff);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .info-card h2 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-card h2 i {
+            font-size: 1.2rem;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e5ee;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #2575fc;
             outline: none;
         }
-        .pulse {
+        
+        .status-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .status-card.receiving {
+            background: #e8f4ff;
+            border: 2px solid #2575fc;
+        }
+        
+        .status-card.sending {
+            background: #e6f7ee;
+            border: 2px solid #28a745;
+        }
+        
+        .status-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .status-card.receiving .status-icon {
+            color: #2575fc;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-card.sending .status-icon {
+            color: #28a745;
             animation: pulse 1.5s infinite;
         }
+        
+        .status-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .status-desc {
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .received-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #28a745;
+            display: none;
+        }
+        
+        .received-card h3 {
+            color: #28a745;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-info {
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .contact-info div {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-info i {
+            width: 25px;
+            color: #2575fc;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .nfc-animation {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin: 20px auto;
+        }
+        
+        .phone {
+            width: 80px;
+            height: 160px;
+            background: #333;
+            border-radius: 12px;
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .waves {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(37, 117, 252, 0.3);
+            border-radius: 50%;
+            left: 70px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: wave 2s infinite;
+        }
+        
+        .waves:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+        
+        .waves:nth-child(4) {
+            animation-delay: 1s;
+        }
+        
+        @keyframes wave {
+            0% { transform: translateY(-50%) scale(1); opacity: 1; }
+            100% { transform: translateY(-50%) scale(3); opacity: 0; }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <h2 style="text-align: center; color: #333;">Transfert NFC Intelligent</h2>
-        <div id="status">Initialisation du NFC...</div>
-        <textarea id="message" placeholder="Écrivez votre message ici pour passer en mode émission. Laissez vide pour le mode réception."></textarea>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-phone-alt"></i> Partage de Contact NFC</h1>
+            <p>Partagez vos informations de contact en un simple contact</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-card">
+                <h2><i class="fas fa-edit"></i> Vos informations</h2>
+                <div class="input-group">
+                    <label for="name">Nom Complet</label>
+                    <input type="text" id="name" placeholder="Ex: Jean Dupont" value="Martin Lefebvre">
+                </div>
+                
+                <div class="input-group">
+                    <label for="phone">Numéro de Téléphone</label>
+                    <input type="tel" id="phone" placeholder="Ex: 06 12 34 56 78" value="06 12 34 56 78">
+                </div>
+                
+                <div class="input-group">
+                    <label for="email">Adresse Email</label>
+                    <input type="email" id="email" placeholder="Ex: contact@exemple.com" value="martin@exemple.com">
+                </div>
+            </div>
+            
+            <div class="status-card" id="statusCard">
+                <div class="nfc-animation">
+                    <div class="phone"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="waves"></div>
+                    <div class="waves"></div>
+                    <div class="waves"></div>
+                </div>
+                <div class="status-text" id="statusText">En attente de transmission</div>
+                <div class="status-desc" id="statusDesc">Approchez votre téléphone d'un autre appareil pour partager vos informations</div>
+            </div>
+            
+            <div class="received-card" id="receivedCard">
+                <h3><i class="fas fa-check-circle"></i> Contact Reçu !</h3>
+                <div class="contact-info" id="contactInfo">
+                    <!-- Les informations de contact reçues seront affichées ici -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Assurez-vous que le NFC est activé sur votre appareil</p>
+        </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const statusElement = document.getElementById('status');
-            const messageElement = document.getElementById('message');
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusCard = document.getElementById('statusCard');
+            const statusText = document.getElementById('statusText');
+            const statusDesc = document.getElementById('statusDesc');
+            const receivedCard = document.getElementById('receivedCard');
+            const contactInfo = document.getElementById('contactInfo');
             
-            // Configuration
-            const MAX_MESSAGE_SIZE = 1024; // 1KB
-            let ndef;
-            let currentMode = null;
-            let abortController = new AbortController();
-
-            // Vérifier la compatibilité NFC
-            if (!('NDEFReader' in window)) {
-                showError("NFC non supporté", "Votre appareil ou navigateur ne prend pas en charge l'API Web NFC.");
-                return;
+            // Simuler la compatibilité NFC
+            const isNfcSupported = true;
+            
+            // Simuler le statut NFC
+            let nfcActive = true;
+            
+            // Vérifier la compatibilité et l'activation du NFC
+            function checkNfcStatus() {
+                if (!isNfcSupported) {
+                    statusText.textContent = "NFC non supporté";
+                    statusDesc.textContent = "Votre appareil ne supporte pas la communication NFC";
+                    statusCard.classList.remove('receiving', 'sending');
+                    return false;
+                }
+                
+                if (!nfcActive) {
+                    statusText.textContent = "NFC désactivé";
+                    statusDesc.textContent = "Veuillez activer le NFC dans les paramètres de votre appareil";
+                    statusCard.classList.remove('receiving', 'sending');
+                    return false;
+                }
+                
+                return true;
             }
-
-            // Initialiser NFC
-            try {
-                ndef = new NDEFReader();
-                checkMode(); // Vérifier le mode initial
-            } catch (error) {
-                showError("Erreur NFC", error.message);
+            
+            // Mettre à jour le statut pour la réception
+            function setReceivingMode() {
+                if (!checkNfcStatus()) return;
+                
+                statusCard.classList.add('receiving');
+                statusCard.classList.remove('sending');
+                statusText.textContent = "Mode Réception Activé";
+                statusDesc.textContent = "Approchez votre téléphone d'un appareil émetteur pour recevoir un contact";
             }
-
-            // Détecter les changements de message
-            messageElement.addEventListener('input', () => {
-                checkMode();
+            
+            // Mettre à jour le statut pour l'émission
+            function setSendingMode() {
+                if (!checkNfcStatus()) return;
+                
+                statusCard.classList.add('sending');
+                statusCard.classList.remove('receiving');
+                statusText.textContent = "Prêt à Transmettre";
+                statusDesc.textContent = "Approchez votre téléphone d'un appareil récepteur pour partager vos informations";
+            }
+            
+            // Simuler la réception d'un contact
+            function simulateContactReception() {
+                if (!checkNfcStatus()) return;
+                
+                // Simuler un délai de transmission
+                statusText.textContent = "Transmission en cours...";
+                statusDesc.textContent = "Maintenez les appareils en contact";
+                
+                setTimeout(() => {
+                    // Afficher les informations reçues
+                    receivedCard.style.display = 'block';
+                    contactInfo.innerHTML = `
+                        <div><i class="fas fa-user"></i> <strong>Nom:</strong> Sophie Martin</div>
+                        <div><i class="fas fa-phone"></i> <strong>Téléphone:</strong> 07 89 12 34 56</div>
+                        <div><i class="fas fa-envelope"></i> <strong>Email:</strong> sophie@exemple.com</div>
+                        <div><i class="fas fa-building"></i> <strong>Société:</strong> Solutions Innovantes</div>
+                    `;
+                    
+                    // Remettre en mode réception après 10 secondes
+                    setTimeout(setReceivingMode, 10000);
+                }, 2000);
+            }
+            
+            // Simuler le partage d'un contact
+            function simulateContactSharing() {
+                if (!checkNfcStatus()) return;
+                
+                setSendingMode();
+                
+                // Simuler un délai de transmission
+                statusText.textContent = "Transmission en cours...";
+                statusDesc.textContent = "Maintenez les appareils en contact";
+                
+                setTimeout(() => {
+                    statusText.textContent = "Transmission réussie !";
+                    statusDesc.textContent = "Les informations ont été transmises avec succès";
+                    
+                    // Remettre en mode réception après 5 secondes
+                    setTimeout(setReceivingMode, 5000);
+                }, 2000);
+            }
+            
+            // Démarrer en mode réception
+            setReceivingMode();
+            
+            // Simuler un contact NFC (pour démonstration)
+            statusCard.addEventListener('click', () => {
+                if (statusCard.classList.contains('receiving')) {
+                    simulateContactReception();
+                } else if (statusCard.classList.contains('sending')) {
+                    simulateContactSharing();
+                }
             });
-
-            // Gérer le mode émission/réception
-            function checkMode() {
-                const hasMessage = messageElement.value.trim().length > 0;
-                
-                if (hasMessage && currentMode !== 'emission') {
-                    setEmissionMode();
-                } else if (!hasMessage && currentMode !== 'reception') {
-                    setReceptionMode();
-                }
-            }
-
-            // Mode Émission
-            async function setEmissionMode() {
-                abortController.abort();
-                abortController = new AbortController();
-                
-                currentMode = 'emission';
-                statusElement.className = 'emission';
-                statusElement.textContent = 'Mode émission : Approchez un appareil NFC';
-                
-                try {
-                    const message = prepareMessage(messageElement.value);
-                    await writeToNfc(message);
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        console.error("Erreur envoi NFC:", error);
+            
+            // Changer de mode si l'utilisateur modifie les champs
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    const hasData = Array.from(inputs).some(input => input.value.trim() !== '');
+                    if (hasData) {
+                        setSendingMode();
+                    } else {
+                        setReceivingMode();
                     }
-                }
-            }
-
-            // Mode Réception
-            async function setReceptionMode() {
-                abortController.abort();
-                abortController = new AbortController();
-                
-                currentMode = 'reception';
-                statusElement.className = 'reception pulse';
-                statusElement.textContent = 'Mode réception : En attente de message...';
-                
-                try {
-                    await ndef.scan({ signal: abortController.signal });
-                    
-                    ndef.onreading = event => {
-                        handleIncomingMessage(event);
-                    };
-                    
-                    ndef.onreadingerror = () => {
-                        statusElement.className = 'reception';
-                        statusElement.textContent = 'Erreur de lecture. Réessayez...';
-                    };
-                    
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        console.error("Erreur scan NFC:", error);
-                    }
-                }
-            }
-
-            // Préparer le message NFC
-            function prepareMessage(text) {
-                if (text.length > MAX_MESSAGE_SIZE) {
-                    text = text.substring(0, MAX_MESSAGE_SIZE);
-                    messageElement.value = text;
-                    showError("Message tronqué", `Limité à ${MAX_MESSAGE_SIZE} caractères`);
-                }
-                
-                return {
-                    records: [
-                        {
-                            recordType: "text",
-                            data: text,
-                            lang: "fr",
-                            encoding: "utf-8"
-                        }
-                    ]
-                };
-            }
-
-            // Écrire sur le tag NFC
-            async function writeToNfc(message) {
-                try {
-                    statusElement.classList.add('pulse');
-                    statusElement.textContent = 'Prêt à envoyer - Approchez un appareil...';
-                    
-                    await ndef.write(message, { signal: abortController.signal });
-                    
-                    statusElement.textContent = 'Message envoyé avec succès!';
-                    setTimeout(() => {
-                        if (currentMode === 'emission') {
-                            statusElement.textContent = 'Mode émission : Approchez un appareil NFC';
-                        }
-                    }, 2000);
-                    
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        statusElement.textContent = 'Échec envoi : ' + error.message;
-                        setTimeout(() => checkMode(), 3000);
-                    }
-                } finally {
-                    statusElement.classList.remove('pulse');
-                }
-            }
-
-            // Recevoir un message NFC
-            function handleIncomingMessage(event) {
-                statusElement.classList.add('pulse');
-                
-                for (const record of event.message.records) {
-                    if (record.recordType === "text") {
-                        try {
-                            const textDecoder = new TextDecoder(record.encoding);
-                            const message = textDecoder.decode(record.data);
-                            messageElement.value = message;
-                            statusElement.textContent = 'Message reçu!';
-                            
-                            setTimeout(() => {
-                                statusElement.textContent = 'Mode réception : En attente de message...';
-                                statusElement.classList.remove('pulse');
-                            }, 3000);
-                            
-                        } catch (error) {
-                            console.error("Erreur décodage:", error);
-                        }
-                    }
-                }
-            }
-
-            function showError(title, message) {
-                statusElement.className = 'error';
-                statusElement.textContent = title + (message ? ': ' + message : '');
-                setTimeout(() => checkMode(), 3000);
-            }
-
-            // Charger un message depuis l'URL si présent
-            const urlParams = new URLSearchParams(window.location.search);
-            const sharedMessage = urlParams.get('m');
-            if (sharedMessage) {
-                try {
-                    messageElement.value = decodeURIComponent(sharedMessage);
-                    checkMode();
-                } catch (e) {
-                    console.warn("Erreur décodage URL", e);
-                }
-            }
+                });
+            });
         });
     </script>
 </body>
