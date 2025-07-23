@@ -6,51 +6,55 @@
     <title>Transfert NFC Automatique</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             max-width: 100%;
             margin: 0;
             padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
         }
         #container {
             max-width: 500px;
             margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         #status {
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 20px 0;
             padding: 15px;
             border-radius: 8px;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
+            margin: 20px 0;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s;
         }
-        .ready {
+        .reception {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        .emission {
             background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-        .waiting {
-            background-color: #fff3e0;
-            color: #e65100;
-            border: 1px solid #ffe0b2;
+            color: #1b5e20;
         }
         .error {
             background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
+            color: #b71c1c;
         }
-        .transferring {
-            background-color: #e3f2fd;
-            color: #1565c0;
-            border: 1px solid #bbdefb;
+        #message {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+        }
+        #message:focus {
+            border-color: #2196f3;
+            outline: none;
+        }
+        .pulse {
             animation: pulse 1.5s infinite;
         }
         @keyframes pulse {
@@ -58,153 +62,187 @@
             50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
-        #message {
-            width: 100%;
-            min-height: 100px;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        #tech-info {
-            font-size: 0.8em;
-            color: #666;
-            margin-top: 20px;
-            text-align: left;
-        }
     </style>
 </head>
 <body>
     <div id="container">
-        <h2>Transfert NFC Automatique</h2>
-        <div id="status">Initialisation...</div>
-        <div id="message" readonly></div>
-        <div id="tech-info"></div>
+        <h2 style="text-align: center; color: #333;">Transfert NFC Intelligent</h2>
+        <div id="status">Initialisation du NFC...</div>
+        <textarea id="message" placeholder="Écrivez votre message ici pour passer en mode émission. Laissez vide pour le mode réception."></textarea>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const statusElement = document.getElementById('status');
             const messageElement = document.getElementById('message');
-            const techInfoElement = document.getElementById('tech-info');
-
-            // Configuration
-            const MAX_MESSAGE_SIZE = 1024; // 1KB limite
-            const MIME_TYPE = "text/plain";
             
+            // Configuration
+            const MAX_MESSAGE_SIZE = 1024; // 1KB
+            let ndef;
+            let currentMode = null;
+            let abortController = new AbortController();
+
             // Vérifier la compatibilité NFC
             if (!('NDEFReader' in window)) {
-                showError("NFC non supporté", "Votre navigateur ou appareil ne supporte pas l'API Web NFC.");
+                showError("NFC non supporté", "Votre appareil ou navigateur ne prend pas en charge l'API Web NFC.");
                 return;
             }
 
-            // Vérifier les permissions
+            // Initialiser NFC
             try {
-                const permissionStatus = await navigator.permissions.query({ name: 'nfc' });
-                if (permissionStatus.state === 'denied') {
-                    showError("Permission refusée", "Veuillez autoriser l'accès NFC dans les paramètres de votre appareil.");
-                    return;
-                }
-            } catch (error) {
-                console.log("Impossible de vérifier les permissions NFC:", error);
-            }
-
-            // Démarrer la lecture NFC
-            try {
-                statusElement.className = "ready";
-                statusElement.textContent = "Prêt à recevoir - Approchez un appareil NFC";
-                
-                const ndef = new NDEFReader();
-                await ndef.scan();
-                
-                ndef.onreading = event => {
-                    handleNFCMessage(event);
-                };
-                
-                ndef.onreadingerror = () => {
-                    statusElement.className = "error";
-                    statusElement.textContent = "Erreur de lecture NFC";
-                };
-
+                ndef = new NDEFReader();
+                checkMode(); // Vérifier le mode initial
             } catch (error) {
                 showError("Erreur NFC", error.message);
             }
 
-            // Gérer les messages entrants
-            function handleNFCMessage(event) {
-                statusElement.className = "transferring";
-                statusElement.textContent = "Transfert en cours...";
+            // Détecter les changements de message
+            messageElement.addEventListener('input', () => {
+                checkMode();
+            });
+
+            // Gérer le mode émission/réception
+            function checkMode() {
+                const hasMessage = messageElement.value.trim().length > 0;
                 
-                let messageContent = "";
-                let senderInfo = "";
+                if (hasMessage && currentMode !== 'emission') {
+                    setEmissionMode();
+                } else if (!hasMessage && currentMode !== 'reception') {
+                    setReceptionMode();
+                }
+            }
+
+            // Mode Émission
+            async function setEmissionMode() {
+                abortController.abort();
+                abortController = new AbortController();
                 
-                for (const record of event.message.records) {
-                    try {
-                        // Vérifier la taille du message
-                        if (record.data && record.data.length > MAX_MESSAGE_SIZE) {
-                            console.warn("Message trop volumineux ignoré");
-                            continue;
-                        }
-                        
-                        if (record.recordType === "text") {
-                            const textDecoder = new TextDecoder(record.encoding);
-                            messageContent = textDecoder.decode(record.data);
-                            senderInfo = `Reçu via NFC (${record.lang || 'langue inconnue'})`;
-                        } 
-                        else if (record.recordType === "url") {
-                            messageContent = record.data;
-                            senderInfo = "Lien reçu via NFC";
-                        }
-                        else if (record.recordType === "mime" && record.mediaType === MIME_TYPE) {
-                            const textDecoder = new TextDecoder();
-                            messageContent = textDecoder.decode(record.data);
-                            senderInfo = "Message texte reçu";
-                        }
-                    } catch (error) {
-                        console.error("Erreur de traitement NFC:", error);
+                currentMode = 'emission';
+                statusElement.className = 'emission';
+                statusElement.textContent = 'Mode émission : Approchez un appareil NFC';
+                
+                try {
+                    const message = prepareMessage(messageElement.value);
+                    await writeToNfc(message);
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error("Erreur envoi NFC:", error);
                     }
                 }
+            }
+
+            // Mode Réception
+            async function setReceptionMode() {
+                abortController.abort();
+                abortController = new AbortController();
                 
-                if (messageContent) {
-                    statusElement.className = "ready";
-                    statusElement.textContent = "Transfert terminé";
-                    messageElement.textContent = messageContent;
+                currentMode = 'reception';
+                statusElement.className = 'reception pulse';
+                statusElement.textContent = 'Mode réception : En attente de message...';
+                
+                try {
+                    await ndef.scan({ signal: abortController.signal });
                     
-                    // Mettre à jour les infos techniques
-                    techInfoElement.innerHTML = `
-                        <strong>Détails techniques :</strong><br>
-                        ${senderInfo}<br>
-                        Taille: ${messageContent.length} caractères<br>
-                        Format: ${messageContent.length <= 100 ? 'Texte court' : 'Texte'}
-                    `;
-                } else {
-                    statusElement.className = "error";
-                    statusElement.textContent = "Aucun message valide reçu";
+                    ndef.onreading = event => {
+                        handleIncomingMessage(event);
+                    };
+                    
+                    ndef.onreadingerror = () => {
+                        statusElement.className = 'reception';
+                        statusElement.textContent = 'Erreur de lecture. Réessayez...';
+                    };
+                    
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error("Erreur scan NFC:", error);
+                    }
                 }
             }
 
-            function showError(title, details) {
-                statusElement.className = "error";
-                statusElement.textContent = title;
-                techInfoElement.textContent = details;
+            // Préparer le message NFC
+            function prepareMessage(text) {
+                if (text.length > MAX_MESSAGE_SIZE) {
+                    text = text.substring(0, MAX_MESSAGE_SIZE);
+                    messageElement.value = text;
+                    showError("Message tronqué", `Limité à ${MAX_MESSAGE_SIZE} caractères`);
+                }
+                
+                return {
+                    records: [
+                        {
+                            recordType: "text",
+                            data: text,
+                            lang: "fr",
+                            encoding: "utf-8"
+                        }
+                    ]
+                };
             }
 
-            // Gestion automatique des messages partagés via URL
+            // Écrire sur le tag NFC
+            async function writeToNfc(message) {
+                try {
+                    statusElement.classList.add('pulse');
+                    statusElement.textContent = 'Prêt à envoyer - Approchez un appareil...';
+                    
+                    await ndef.write(message, { signal: abortController.signal });
+                    
+                    statusElement.textContent = 'Message envoyé avec succès!';
+                    setTimeout(() => {
+                        if (currentMode === 'emission') {
+                            statusElement.textContent = 'Mode émission : Approchez un appareil NFC';
+                        }
+                    }, 2000);
+                    
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        statusElement.textContent = 'Échec envoi : ' + error.message;
+                        setTimeout(() => checkMode(), 3000);
+                    }
+                } finally {
+                    statusElement.classList.remove('pulse');
+                }
+            }
+
+            // Recevoir un message NFC
+            function handleIncomingMessage(event) {
+                statusElement.classList.add('pulse');
+                
+                for (const record of event.message.records) {
+                    if (record.recordType === "text") {
+                        try {
+                            const textDecoder = new TextDecoder(record.encoding);
+                            const message = textDecoder.decode(record.data);
+                            messageElement.value = message;
+                            statusElement.textContent = 'Message reçu!';
+                            
+                            setTimeout(() => {
+                                statusElement.textContent = 'Mode réception : En attente de message...';
+                                statusElement.classList.remove('pulse');
+                            }, 3000);
+                            
+                        } catch (error) {
+                            console.error("Erreur décodage:", error);
+                        }
+                    }
+                }
+            }
+
+            function showError(title, message) {
+                statusElement.className = 'error';
+                statusElement.textContent = title + (message ? ': ' + message : '');
+                setTimeout(() => checkMode(), 3000);
+            }
+
+            // Charger un message depuis l'URL si présent
             const urlParams = new URLSearchParams(window.location.search);
             const sharedMessage = urlParams.get('m');
             if (sharedMessage) {
                 try {
-                    const decodedMessage = decodeURIComponent(sharedMessage);
-                    if (decodedMessage.length <= MAX_MESSAGE_SIZE) {
-                        messageElement.textContent = decodedMessage;
-                        techInfoElement.innerHTML = `
-                            <strong>Message chargé depuis le lien :</strong><br>
-                            Taille: ${decodedMessage.length} caractères
-                        `;
-                    }
+                    messageElement.value = decodeURIComponent(sharedMessage);
+                    checkMode();
                 } catch (e) {
-                    console.warn("Erreur de décodage du message URL", e);
+                    console.warn("Erreur décodage URL", e);
                 }
             }
         });
