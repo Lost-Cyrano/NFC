@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Partage Contact NFC</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Contactless Share - Partage sans contact</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +13,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, #00b09b, #96c93d);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -23,244 +22,126 @@
         }
         
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             width: 100%;
             max-width: 500px;
             overflow: hidden;
-            position: relative;
         }
         
-        .header {
-            background: linear-gradient(to right, #2575fc, #6a11cb);
+        header {
+            background: linear-gradient(to right, #0575e6, #021b79);
             color: white;
-            padding: 25px;
+            padding: 30px 20px;
             text-align: center;
-            position: relative;
         }
         
-        .header h1 {
+        h1 {
             font-size: 1.8rem;
             margin-bottom: 10px;
         }
         
-        .header p {
-            font-size: 1rem;
+        .subtitle {
             opacity: 0.9;
+            font-size: 0.95rem;
         }
         
         .content {
             padding: 30px;
         }
         
-        .info-card {
-            background: linear-gradient(to right, #f5f7fa, #e4edff);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .info-card h2 {
-            color: #2575fc;
-            margin-bottom: 15px;
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .info-card h2 i {
-            font-size: 1.2rem;
-        }
-        
-        .input-group {
+        .form-group {
             margin-bottom: 20px;
         }
         
-        .input-group label {
+        label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .input-group input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e1e5ee;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        
-        .input-group input:focus {
-            border-color: #2575fc;
-            outline: none;
-        }
-        
-        .status-card {
-            background: #f8f9ff;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
-            min-height: 150px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .status-card.receiving {
-            background: #e8f4ff;
-            border: 2px solid #2575fc;
-        }
-        
-        .status-card.sending {
-            background: #e6f7ee;
-            border: 2px solid #28a745;
-        }
-        
-        .status-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        
-        .status-card.receiving .status-icon {
-            color: #2575fc;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-card.sending .status-icon {
-            color: #28a745;
-            animation: pulse 1.5s infinite;
-        }
-        
-        .status-text {
-            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            color: #333;
         }
         
-        .status-desc {
-            color: #555;
-            font-size: 0.95rem;
-        }
-        
-        .received-card {
-            background: #fff;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid #28a745;
-            display: none;
-        }
-        
-        .received-card h3 {
-            color: #28a745;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .contact-info {
+        textarea {
+            width: 100%;
             padding: 15px;
-            background: #f8f9ff;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            min-height: 150px;
+            resize: none;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, #00c853, #64dd17);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
             border-radius: 10px;
             font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .nfc-status {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f5f5f5;
+        }
+        
+        .nfc-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #0575e6;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
             line-height: 1.6;
         }
         
-        .contact-info div {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .instructions ol {
+            padding-left: 20px;
         }
         
-        .contact-info i {
-            width: 25px;
-            color: #2575fc;
+        .instructions li {
+            margin-bottom: 8px;
         }
         
-        .footer {
+        footer {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            font-size: 0.8rem;
             color: #666;
-            font-size: 0.9rem;
-            border-top: 1px solid #eee;
         }
         
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .nfc-animation {
-            width: 120px;
-            height: 120px;
-            position: relative;
-            margin: 20px auto;
-        }
-        
-        .phone {
-            width: 80px;
-            height: 160px;
-            background: #333;
-            border-radius: 12px;
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .waves {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: rgba(37, 117, 252, 0.3);
-            border-radius: 50%;
-            left: 70px;
-            top: 50%;
-            transform: translateY(-50%);
-            animation: wave 2s infinite;
-        }
-        
-        .waves:nth-child(3) {
-            animation-delay: 0.5s;
-        }
-        
-        .waves:nth-child(4) {
-            animation-delay: 1s;
-        }
-        
-        @keyframes wave {
-            0% { transform: translateY(-50%) scale(1); opacity: 1; }
-            100% { transform: translateY(-50%) scale(3); opacity: 0; }
-        }
-        
-        @media (max-width: 480px) {
-            .header {
-                padding: 20px 15px;
-            }
-            
+        @media (max-width: 600px) {
             .content {
-                padding: 20px 15px;
+                padding: 20px;
             }
             
-            .header h1 {
+            h1 {
                 font-size: 1.5rem;
             }
         }
@@ -268,173 +149,149 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-phone-alt"></i> Partage de Contact NFC</h1>
-            <p>Partagez vos informations de contact en un simple contact</p>
-        </div>
+        <header>
+            <h1>Contactless Share</h1>
+            <p class="subtitle">Partage d'informations par NFC</p>
+        </header>
         
         <div class="content">
-            <div class="info-card">
-                <h2><i class="fas fa-edit"></i> Vos informations</h2>
-                <div class="input-group">
-                    <label for="name">Nom Complet</label>
-                    <input type="text" id="name" placeholder="Ex: Jean Dupont" value="Martin Lefebvre">
-                </div>
-                
-                <div class="input-group">
-                    <label for="phone">Numéro de Téléphone</label>
-                    <input type="tel" id="phone" placeholder="Ex: 06 12 34 56 78" value="06 12 34 56 78">
-                </div>
-                
-                <div class="input-group">
-                    <label for="email">Adresse Email</label>
-                    <input type="email" id="email" placeholder="Ex: contact@exemple.com" value="martin@exemple.com">
-                </div>
+            <div class="form-group">
+                <label for="message">Message à partager :</label>
+                <textarea id="message" placeholder="Écrivez ici les informations à partager...">Mon numéro: 0606060606
+Mon créneau: 12h30-14h00
+Autres infos...</textarea>
             </div>
             
-            <div class="status-card" id="statusCard">
-                <div class="nfc-animation">
-                    <div class="phone"><i class="fas fa-mobile-alt"></i></div>
-                    <div class="waves"></div>
-                    <div class="waves"></div>
-                    <div class="waves"></div>
-                </div>
-                <div class="status-text" id="statusText">En attente de transmission</div>
-                <div class="status-desc" id="statusDesc">Approchez votre téléphone d'un autre appareil pour partager vos informations</div>
+            <button id="shareBtn" class="btn">
+                Activer le partage NFC
+            </button>
+            
+            <div class="nfc-status">
+                <div class="nfc-icon">⇅</div>
+                <h3 id="statusText">Prêt à partager</h3>
+                <p id="detailText">Approchez les téléphones dos à dos</p>
             </div>
             
-            <div class="received-card" id="receivedCard">
-                <h3><i class="fas fa-check-circle"></i> Contact Reçu !</h3>
-                <div class="contact-info" id="contactInfo">
-                    <!-- Les informations de contact reçues seront affichées ici -->
-                </div>
+            <div class="instructions">
+                <h3>Comment utiliser :</h3>
+                <ol>
+                    <li>Remplissez les informations à partager</li>
+                    <li>Cliquez sur "Activer le partage NFC"</li>
+                    <li>Approchez votre téléphone du téléphone client</li>
+                    <li>Maintenez les téléphones proches (1-2 cm)</li>
+                    <li>Les informations seront transférées automatiquement</li>
+                </ol>
             </div>
         </div>
         
-        <div class="footer">
-            <p>Assurez-vous que le NFC est activé sur votre appareil</p>
-        </div>
+        <footer>
+            Compatible avec les appareils Android supportant Web NFC (Chrome)
+        </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const statusCard = document.getElementById('statusCard');
+            const shareBtn = document.getElementById('shareBtn');
             const statusText = document.getElementById('statusText');
-            const statusDesc = document.getElementById('statusDesc');
-            const receivedCard = document.getElementById('receivedCard');
-            const contactInfo = document.getElementById('contactInfo');
+            const detailText = document.getElementById('detailText');
+            const messageInput = document.getElementById('message');
             
-            // Simuler la compatibilité NFC
-            const isNfcSupported = true;
+            let writer;
+            let isSharing = false;
             
-            // Simuler le statut NFC
-            let nfcActive = true;
-            
-            // Vérifier la compatibilité et l'activation du NFC
-            function checkNfcStatus() {
-                if (!isNfcSupported) {
-                    statusText.textContent = "NFC non supporté";
-                    statusDesc.textContent = "Votre appareil ne supporte pas la communication NFC";
-                    statusCard.classList.remove('receiving', 'sending');
-                    return false;
-                }
-                
-                if (!nfcActive) {
-                    statusText.textContent = "NFC désactivé";
-                    statusDesc.textContent = "Veuillez activer le NFC dans les paramètres de votre appareil";
-                    statusCard.classList.remove('receiving', 'sending');
-                    return false;
-                }
-                
-                return true;
+            // Vérifier la compatibilité NFC
+            if (!('NDEFReader' in window)) {
+                statusText.textContent = "NFC non supporté";
+                detailText.textContent = "Votre appareil ou navigateur ne supporte pas Web NFC";
+                shareBtn.disabled = true;
+                return;
             }
             
-            // Mettre à jour le statut pour la réception
-            function setReceivingMode() {
-                if (!checkNfcStatus()) return;
-                
-                statusCard.classList.add('receiving');
-                statusCard.classList.remove('sending');
-                statusText.textContent = "Mode Réception Activé";
-                statusDesc.textContent = "Approchez votre téléphone d'un appareil émetteur pour recevoir un contact";
-            }
-            
-            // Mettre à jour le statut pour l'émission
-            function setSendingMode() {
-                if (!checkNfcStatus()) return;
-                
-                statusCard.classList.add('sending');
-                statusCard.classList.remove('receiving');
-                statusText.textContent = "Prêt à Transmettre";
-                statusDesc.textContent = "Approchez votre téléphone d'un appareil récepteur pour partager vos informations";
-            }
-            
-            // Simuler la réception d'un contact
-            function simulateContactReception() {
-                if (!checkNfcStatus()) return;
-                
-                // Simuler un délai de transmission
-                statusText.textContent = "Transmission en cours...";
-                statusDesc.textContent = "Maintenez les appareils en contact";
-                
-                setTimeout(() => {
-                    // Afficher les informations reçues
-                    receivedCard.style.display = 'block';
-                    contactInfo.innerHTML = `
-                        <div><i class="fas fa-user"></i> <strong>Nom:</strong> Sophie Martin</div>
-                        <div><i class="fas fa-phone"></i> <strong>Téléphone:</strong> 07 89 12 34 56</div>
-                        <div><i class="fas fa-envelope"></i> <strong>Email:</strong> sophie@exemple.com</div>
-                        <div><i class="fas fa-building"></i> <strong>Société:</strong> Solutions Innovantes</div>
-                    `;
-                    
-                    // Remettre en mode réception après 10 secondes
-                    setTimeout(setReceivingMode, 10000);
-                }, 2000);
-            }
-            
-            // Simuler le partage d'un contact
-            function simulateContactSharing() {
-                if (!checkNfcStatus()) return;
-                
-                setSendingMode();
-                
-                // Simuler un délai de transmission
-                statusText.textContent = "Transmission en cours...";
-                statusDesc.textContent = "Maintenez les appareils en contact";
-                
-                setTimeout(() => {
-                    statusText.textContent = "Transmission réussie !";
-                    statusDesc.textContent = "Les informations ont été transmises avec succès";
-                    
-                    // Remettre en mode réception après 5 secondes
-                    setTimeout(setReceivingMode, 5000);
-                }, 2000);
-            }
-            
-            // Démarrer en mode réception
-            setReceivingMode();
-            
-            // Simuler un contact NFC (pour démonstration)
-            statusCard.addEventListener('click', () => {
-                if (statusCard.classList.contains('receiving')) {
-                    simulateContactReception();
-                } else if (statusCard.classList.contains('sending')) {
-                    simulateContactSharing();
-                }
-            });
-            
-            // Changer de mode si l'utilisateur modifie les champs
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    const hasData = Array.from(inputs).some(input => input.value.trim() !== '');
-                    if (hasData) {
-                        setSendingMode();
+            shareBtn.addEventListener('click', async () => {
+                try {
+                    if (!isSharing) {
+                        // Commencer le partage NFC
+                        writer = new NDEFReader();
+                        
+                        await writer.scan();
+                        isSharing = true;
+                        shareBtn.textContent = "Arrêter le partage";
+                        statusText.textContent = "Partage activé";
+                        detailText.textContent = "Approchez les téléphones...";
+                        
+                        writer.onreading = event => {
+                            const message = messageInput.value;
+                            const record = {
+                                recordType: "mime",
+                                mediaType: "text/plain",
+                                data: new TextEncoder().encode(message)
+                            };
+                            
+                            // Écrire sur le tag NFC
+                            writer.write({
+                                records: [record]
+                            }).then(() => {
+                                statusText.textContent = "Transfert réussi!";
+                                detailText.textContent = "Les informations ont été envoyées";
+                                
+                                // Réinitialiser après 3 secondes
+                                setTimeout(() => {
+                                    if (isSharing) {
+                                        statusText.textContent = "Partage activé";
+                                        detailText.textContent = "Approchez les téléphones...";
+                                    }
+                                }, 3000);
+                            }).catch(err => {
+                                console.error("Erreur d'écriture:", err);
+                                statusText.textContent = "Erreur de transfert";
+                                detailText.textContent = "Veuillez réessayer";
+                            });
+                        };
+                        
+                        writer.onreadingerror = () => {
+                            statusText.textContent = "Erreur de lecture";
+                            detailText.textContent = "Veuillez réessayer";
+                        };
                     } else {
-                        setReceivingMode();
+                        // Arrêter le partage NFC
+                        isSharing = false;
+                        shareBtn.textContent = "Activer le partage NFC";
+                        statusText.textContent = "Partage désactivé";
+                        detailText.textContent = "Cliquez pour activer";
+                        
+                        if (writer) {
+                            // Fermer la connexion NFC
+                            writer.onreading = null;
+                            writer.onreadingerror = null;
+                        }
                     }
-                });
+                } catch (err) {
+                    console.error("Erreur NFC:", err);
+                    statusText.textContent = "Erreur NFC";
+                    detailText.textContent = err.message || "Une erreur est survenue";
+                    isSharing = false;
+                    shareBtn.textContent = "Activer le partage NFC";
+                }
             });
+            
+            // Vérifier les permissions
+            async function checkPermissions() {
+                try {
+                    const status = await navigator.permissions.query({
+                        name: 'nfc'
+                    });
+                    
+                    if (status.state === 'denied') {
+                        statusText.textContent = "Permission refusée";
+                        detailText.textContent = "Veuillez autoriser l'accès NFC dans les paramètres";
+                        shareBtn.disabled = true;
+                    }
+                } catch (err) {
+                    console.log("L'API Permissions n'est pas supportée");
+                }
+            }
+            
+            checkPermissions();
         });
     </script>
 </body>
