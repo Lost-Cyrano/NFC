@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contactless Share - Partage sans contact</title>
+    <title>Partage NFC - Solution améliorée</title>
     <style>
         * {
             margin: 0;
@@ -40,11 +40,6 @@
         h1 {
             font-size: 1.8rem;
             margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            opacity: 0.9;
-            font-size: 0.95rem;
         }
         
         .content {
@@ -97,18 +92,44 @@
             transform: none;
         }
         
-        .nfc-status {
+        .status-box {
             text-align: center;
             margin: 30px 0;
             padding: 20px;
             border-radius: 10px;
             background: #f5f5f5;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
-        .nfc-icon {
+        .status-icon {
             font-size: 3rem;
             margin-bottom: 15px;
-            color: #0575e6;
+        }
+        
+        .status-text {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .status-detail {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .error {
+            color: #d32f2f;
+        }
+        
+        .success {
+            color: #388e3c;
+        }
+        
+        .warning {
+            color: #ffa000;
         }
         
         .instructions {
@@ -120,12 +141,14 @@
             line-height: 1.6;
         }
         
-        .instructions ol {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
+        .debug-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #666;
+            display: none;
         }
         
         footer {
@@ -135,162 +158,239 @@
             font-size: 0.8rem;
             color: #666;
         }
-        
-        @media (max-width: 600px) {
-            .content {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 1.5rem;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Contactless Share</h1>
-            <p class="subtitle">Partage d'informations par NFC</p>
+            <h1>Partage NFC Pro</h1>
+            <p>Solution améliorée de partage sans contact</p>
         </header>
         
         <div class="content">
             <div class="form-group">
-                <label for="message">Message à partager :</label>
-                <textarea id="message" placeholder="Écrivez ici les informations à partager...">Mon numéro: 0606060606
-Mon créneau: 12h30-14h00
-Autres infos...</textarea>
+                <label for="message">Informations à partager :</label>
+                <textarea id="message" placeholder="Écrivez ici les informations à transférer...">Mon numéro: 0606060606
+Disponible de 12h30 à 14h00
+Autres informations...</textarea>
             </div>
             
             <button id="shareBtn" class="btn">
                 Activer le partage NFC
             </button>
             
-            <div class="nfc-status">
-                <div class="nfc-icon">⇅</div>
-                <h3 id="statusText">Prêt à partager</h3>
-                <p id="detailText">Approchez les téléphones dos à dos</p>
+            <div class="status-box" id="statusBox">
+                <div class="status-icon" id="statusIcon">⇅</div>
+                <h3 class="status-text" id="statusText">Prêt à partager</h3>
+                <p class="status-detail" id="detailText">Cliquez sur le bouton pour activer le NFC</p>
+                <div class="debug-info" id="debugInfo"></div>
             </div>
             
             <div class="instructions">
-                <h3>Comment utiliser :</h3>
+                <h3>Mode d'emploi :</h3>
                 <ol>
-                    <li>Remplissez les informations à partager</li>
-                    <li>Cliquez sur "Activer le partage NFC"</li>
-                    <li>Approchez votre téléphone du téléphone client</li>
-                    <li>Maintenez les téléphones proches (1-2 cm)</li>
-                    <li>Les informations seront transférées automatiquement</li>
+                    <li>Activez le NFC dans les paramètres de votre téléphone</li>
+                    <li>Déverrouillez votre écran</li>
+                    <li>Approchez les téléphones dos à dos (1-2 cm)</li>
+                    <li>Maintenez la position jusqu'au transfert</li>
+                    <li>Le téléphone client recevra automatiquement les informations</li>
                 </ol>
             </div>
         </div>
         
         <footer>
-            Compatible avec les appareils Android supportant Web NFC (Chrome)
+            Compatible avec les appareils Android (Chrome 89+)
         </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const shareBtn = document.getElementById('shareBtn');
+            const statusBox = document.getElementById('statusBox');
+            const statusIcon = document.getElementById('statusIcon');
             const statusText = document.getElementById('statusText');
             const detailText = document.getElementById('detailText');
+            const debugInfo = document.getElementById('debugInfo');
             const messageInput = document.getElementById('message');
             
-            let writer;
+            let nfcReader;
             let isSharing = false;
             
             // Vérifier la compatibilité NFC
-            if (!('NDEFReader' in window)) {
-                statusText.textContent = "NFC non supporté";
-                detailText.textContent = "Votre appareil ou navigateur ne supporte pas Web NFC";
-                shareBtn.disabled = true;
-                return;
+            function checkNFCSupport() {
+                if (!('NDEFReader' in window)) {
+                    updateStatus('error', 'NFC non supporté', 
+                        'Votre navigateur ou appareil ne supporte pas Web NFC');
+                    shareBtn.disabled = true;
+                    return false;
+                }
+                return true;
             }
             
-            shareBtn.addEventListener('click', async () => {
+            // Mettre à jour l'état de l'interface
+            function updateStatus(type, text, detail, debug = '') {
+                // Réinitialiser les classes
+                statusBox.className = 'status-box';
+                statusIcon.className = 'status-icon';
+                statusText.className = 'status-text';
+                
+                // Ajouter les classes appropriées
+                statusBox.classList.add(type);
+                statusIcon.classList.add(type);
+                statusText.classList.add(type);
+                
+                // Mettre à jour le texte
+                statusText.textContent = text;
+                detailText.textContent = detail;
+                
+                // Afficher les infos de débogage si nécessaire
+                if (debug) {
+                    debugInfo.style.display = 'block';
+                    debugInfo.textContent = debug;
+                } else {
+                    debugInfo.style.display = 'none';
+                }
+                
+                // Changer l'icône selon le type
+                switch(type) {
+                    case 'error':
+                        statusIcon.textContent = '✖';
+                        break;
+                    case 'success':
+                        statusIcon.textContent = '✓';
+                        break;
+                    case 'warning':
+                        statusIcon.textContent = '⚠';
+                        break;
+                    default:
+                        statusIcon.textContent = '⇅';
+                }
+            }
+            
+            // Démarrer le partage NFC
+            async function startSharing() {
                 try {
-                    if (!isSharing) {
-                        // Commencer le partage NFC
-                        writer = new NDEFReader();
-                        
-                        await writer.scan();
-                        isSharing = true;
-                        shareBtn.textContent = "Arrêter le partage";
-                        statusText.textContent = "Partage activé";
-                        detailText.textContent = "Approchez les téléphones...";
-                        
-                        writer.onreading = event => {
-                            const message = messageInput.value;
-                            const record = {
-                                recordType: "mime",
-                                mediaType: "text/plain",
-                                data: new TextEncoder().encode(message)
-                            };
-                            
-                            // Écrire sur le tag NFC
-                            writer.write({
-                                records: [record]
-                            }).then(() => {
-                                statusText.textContent = "Transfert réussi!";
-                                detailText.textContent = "Les informations ont été envoyées";
-                                
-                                // Réinitialiser après 3 secondes
-                                setTimeout(() => {
-                                    if (isSharing) {
-                                        statusText.textContent = "Partage activé";
-                                        detailText.textContent = "Approchez les téléphones...";
-                                    }
-                                }, 3000);
-                            }).catch(err => {
-                                console.error("Erreur d'écriture:", err);
-                                statusText.textContent = "Erreur de transfert";
-                                detailText.textContent = "Veuillez réessayer";
-                            });
-                        };
-                        
-                        writer.onreadingerror = () => {
-                            statusText.textContent = "Erreur de lecture";
-                            detailText.textContent = "Veuillez réessayer";
-                        };
-                    } else {
-                        // Arrêter le partage NFC
-                        isSharing = false;
-                        shareBtn.textContent = "Activer le partage NFC";
-                        statusText.textContent = "Partage désactivé";
-                        detailText.textContent = "Cliquez pour activer";
-                        
-                        if (writer) {
-                            // Fermer la connexion NFC
-                            writer.onreading = null;
-                            writer.onreadingerror = null;
-                        }
-                    }
-                } catch (err) {
-                    console.error("Erreur NFC:", err);
-                    statusText.textContent = "Erreur NFC";
-                    detailText.textContent = err.message || "Une erreur est survenue";
-                    isSharing = false;
-                    shareBtn.textContent = "Activer le partage NFC";
+                    updateStatus('warning', 'Activation NFC...', 
+                        'Initialisation en cours...');
+                    
+                    nfcReader = new NDEFReader();
+                    
+                    // Configurer les gestionnaires d'événements avant de scanner
+                    nfcReader.onreading = (event) => {
+                        updateStatus('warning', 'Détection...', 
+                            'Téléphone détecté, préparation du transfert...');
+                    };
+                    
+                    nfcReader.onreadingerror = (error) => {
+                        updateStatus('error', 'Erreur de lecture', 
+                            'Échec de la lecture du tag NFC', 
+                            `Erreur: ${error.message || 'Inconnue'}`);
+                    };
+                    
+                    await nfcReader.scan();
+                    isSharing = true;
+                    shareBtn.textContent = "Arrêter le partage";
+                    updateStatus('success', 'Partage activé', 
+                        'Approchez les téléphones dos à dos...');
+                    
+                    // Vérifier périodiquement que le NFC est toujours actif
+                    const checkInterval = setInterval(() => {
+                        if (!isSharing) clearInterval(checkInterval);
+                        updateNFCAvailability();
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error("Erreur NFC:", error);
+                    handleNFCError(error);
+                }
+            }
+            
+            // Arrêter le partage NFC
+            function stopSharing() {
+                isSharing = false;
+                nfcReader = null;
+                shareBtn.textContent = "Activer le partage NFC";
+                updateStatus('', 'Partage désactivé', 
+                    'Cliquez sur le bouton pour activer');
+            }
+            
+            // Gérer les erreurs NFC
+            function handleNFCError(error) {
+                let errorMessage = "Erreur inconnue";
+                let detailMessage = "Veuillez réessayer";
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = "Permission refusée";
+                    detailMessage = "Veuillez autoriser l'accès NFC dans les paramètres";
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage = "NFC non supporté";
+                    detailMessage = "Votre appareil ne supporte pas cette fonctionnalité";
+                } else if (error.message.includes('NFC not available')) {
+                    errorMessage = "NFC non disponible";
+                    detailMessage = "Activez le NFC dans les paramètres de votre téléphone";
+                } else {
+                    errorMessage = "Erreur technique";
+                    detailMessage = error.message || "Une erreur est survenue";
+                }
+                
+                updateStatus('error', errorMessage, detailMessage, 
+                    `Code: ${error.name || 'Inconnu'}`);
+                stopSharing();
+            }
+            
+            // Vérifier la disponibilité du NFC
+            async function updateNFCAvailability() {
+                try {
+                    if (!isSharing) return;
+                    
+                    // Vérifier si on peut écrire (test simplifié)
+                    const testRecord = {
+                        recordType: "mime",
+                        mediaType: "text/plain",
+                        data: new TextEncoder().encode("test")
+                    };
+                    
+                    await nfcReader.write({
+                        records: [testRecord]
+                    }, { timeout: 100 }).catch(() => {});
+                    
+                } catch (error) {
+                    handleNFCError(error);
+                }
+            }
+            
+            // Gestionnaire du bouton de partage
+            shareBtn.addEventListener('click', async () => {
+                if (!checkNFCSupport()) return;
+                
+                if (!isSharing) {
+                    await startSharing();
+                } else {
+                    stopSharing();
                 }
             });
             
-            // Vérifier les permissions
+            // Vérifier les permissions au chargement
             async function checkPermissions() {
                 try {
-                    const status = await navigator.permissions.query({
-                        name: 'nfc'
-                    });
-                    
-                    if (status.state === 'denied') {
-                        statusText.textContent = "Permission refusée";
-                        detailText.textContent = "Veuillez autoriser l'accès NFC dans les paramètres";
-                        shareBtn.disabled = true;
+                    if (navigator.permissions && navigator.permissions.query) {
+                        const status = await navigator.permissions.query({
+                            name: 'nfc'
+                        });
+                        
+                        if (status.state === 'denied') {
+                            updateStatus('error', 'Permission refusée', 
+                                'Veuillez autoriser l\'accès NFC dans les paramètres');
+                            shareBtn.disabled = true;
+                        }
                     }
                 } catch (err) {
                     console.log("L'API Permissions n'est pas supportée");
                 }
             }
             
+            // Initialisation
+            checkNFCSupport();
             checkPermissions();
         });
     </script>
