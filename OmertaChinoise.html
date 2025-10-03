@@ -3,38 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page avec fond d'écran et musique</title>
+    <title>Fond d'écran avec musique</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
             height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             background-image: url('https://raw.githubusercontent.com/Lost-Cyrano/NFC/refs/heads/main/Screenshot_2025-09-28-22-01-36-466_com.zhiliaoapp.musically-edit.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            font-family: Arial, sans-serif;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
         }
         
-        .content {
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 80%;
-        }
-        
-        audio {
-            margin-top: 20px;
-            width: 300px;
+        /* Masquer l'élément audio */
+        #backgroundMusic {
+            display: none;
         }
     </style>
 </head>
+<body>
+    <!-- Audio pour la musique de fond -->
+    <audio id="backgroundMusic" autoplay loop>
+        <source src="ssstik.io_1759518899176.mp4" type="audio/mp4">
+        Votre navigateur ne supporte pas l'élément audio.
+    </audio>
+
+    <script>
+        // Script pour gérer la lecture automatique de la musique
+        document.addEventListener('DOMContentLoaded', function() {
+            const audio = document.getElementById('backgroundMusic');
+            
+            // Tentative de lecture automatique
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(function(error) {
+                    console.log('Lecture automatique bloquée: ', error);
+                    // Dans ce cas, on ne fait rien car on ne veut aucun élément visible
+                });
+            }
+        });
+    </script>
+</body>
+</html></head>
 <body>
     <div class="content">
         <h1>Bienvenue sur ma page</h1>
