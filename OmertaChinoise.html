@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fond d'écran avec musique</title>
+    <title>vive omerta chinoise</title>
     <style>
         * {
             margin: 0;
@@ -33,38 +33,6 @@
         <source src="ssstik.io_1759518899176.mp4" type="audio/mp4">
         Votre navigateur ne supporte pas l'élément audio.
     </audio>
-
-    <script>
-        // Script pour gérer la lecture automatique de la musique
-        document.addEventListener('DOMContentLoaded', function() {
-            const audio = document.getElementById('backgroundMusic');
-            
-            // Tentative de lecture automatique
-            const playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(function(error) {
-                    console.log('Lecture automatique bloquée: ', error);
-                    // Dans ce cas, on ne fait rien car on ne veut aucun élément visible
-                });
-            }
-        });
-    </script>
-</body>
-</html></head>
-<body>
-    <div class="content">
-        <h1>Bienvenue sur ma page</h1>
-        <p>Cette page a un fond d'écran personnalisé et une musique de fond qui se lance automatiquement.</p>
-        
-        <!-- Audio pour la musique de fond -->
-        <audio id="backgroundMusic" autoplay loop>
-            <source src="ssstik.io_1759518899176.mp4" type="audio/mp4">
-            Votre navigateur ne supporte pas l'élément audio.
-        </audio>
-        
-        <p>Musique de fond en cours de lecture</p>
-    </div>
 
     <script>
         // Script pour gérer la lecture automatique de la musique
