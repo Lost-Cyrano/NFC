@@ -3,60 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>vive omerta chinoise</title>
+    <title>Page avec musique de fond</title>
     <style>
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
             overflow: hidden;
-            background-image: url('https://raw.githubusercontent.com/Lost-Cyrano/NFC/refs/heads/main/Screenshot_2025-09-28-22-01-36-466_com.zhiliaoapp.musically-edit.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
         }
         
-        /* Masquer l'élément audio */
-        #backgroundMusic {
-            display: none;
+        #background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Audio pour la musique de fond -->
-    <audio id="backgroundMusic" autoplay loop>
-        <source src="ssstik.io_1759518899176.mp4" type="audio/mp4">
-        Votre navigateur ne supporte pas l'élément audio.
-    </audio>
+    <!-- Vidéo/musique de fond -->
+    <video id="background-video" autoplay loop muted>
+        <source src="ssstik.io_1759518899176.mp4" type="video/mp4">
+        Votre navigateur ne supporte pas la lecture de vidéos.
+    </video>
+    
+    <div class="content">
+        <!-- Le contenu de votre page va ici -->
+        <h1>Bienvenue sur ma page</h1>
+        <p>La musique se joue automatiquement en arrière-plan.</p>
+    </div>
 
     <script>
-        // Script pour gérer la lecture automatique de la musique
+        // Script pour s'assurer que la vidéo se joue automatiquement
         document.addEventListener('DOMContentLoaded', function() {
-            const audio = document.getElementById('backgroundMusic');
-            
-            // Tentative de lecture automatique
-            audio.play().catch(function(error) {
-                console.log('Lecture automatique bloquée: ', error);
-                // Afficher un message si la lecture automatique est bloquée
-                const contentDiv = document.querySelector('.content');
-                const message = document.createElement('p');
-                message.innerHTML = 'La lecture automatique a été bloquée. <button onclick="playAudio()">Cliquez ici pour démarrer la musique</button>';
-                message.style.color = '#ffcc00';
-                contentDiv.appendChild(message);
+            var video = document.getElementById('background-video');
+            video.muted = true; // Nécessaire pour l'autoplay sur certains navigateurs
+            video.play().catch(function(error) {
+                console.log("Erreur de lecture automatique:", error);
             });
         });
-        
-        // Fonction pour démarrer la musique manuellement
-        function playAudio() {
-            const audio = document.getElementById('backgroundMusic');
-            audio.play();
-            document.querySelector('button').style.display = 'none';
-        }
     </script>
 </body>
 </html>
