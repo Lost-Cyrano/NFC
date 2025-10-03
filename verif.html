@@ -1,596 +1,67 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérificateur de Compatibilité NFC</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            width: 100%;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(to right, #1a2a6c, #b21f1f);
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
-        
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .status-card {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #1a2a6c;
-        }
-        
-        .status-title {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .status-icon {
-            font-size: 24px;
-            margin-right: 10px;
-        }
-        
-        .compatible {
-            color: #28a745;
-        }
-        
-        .incompatible {
-            color: #dc3545;
-        }
-        
-        .unknown {
-            color: #ffc107;
-        }
-        
-        .details {
-            margin-top: 20px;
-        }
-        
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .detail-item:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .detail-value {
-            color: #6c757d;
-        }
-        
-        .supported {
-            color: #28a745;
-            font-weight: 600;
-        }
-        
-        .not-supported {
-            color: #dc3545;
-            font-weight: 600;
-        }
-        
-        .info-section {
-            background-color: #e7f3ff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 25px;
-            border-left: 5px solid #007bff;
-        }
-        
-        .info-title {
-            color: #004085;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-        
-        .info-list {
-            list-style-type: none;
-        }
-        
-        .info-list li {
-            padding: 8px 0;
-            position: relative;
-            padding-left: 25px;
-        }
-        
-        .info-list li:before {
-            content: "•";
-            color: #007bff;
-            font-weight: bold;
-            position: absolute;
-            left: 10px;
-        }
-        
-        .action-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(to right, #1a2a6c, #b21f1f);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .action-btn:active {
-            transform: translateY(0);
-        }
-        
-        .action-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .scan-section {
-            background-color: #f0f8ff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 25px;
-            border-left: 5px solid #17a2b8;
-            display: none;
-        }
-        
-        .scan-active {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { background-color: #f0f8ff; }
-            50% { background-color: #e1f5fe; }
-            100% { background-color: #f0f8ff; }
-        }
-        
-        .nfc-message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        .nfc-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .nfc-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .nfc-warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #6c757d;
-            font-size: 0.9rem;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                border-radius: 10px;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .detail-item {
-                flex-direction: column;
-            }
-            
-            .detail-value {
-                margin-top: 5px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecteur NFC</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #status { margin: 10px 0; color: blue; }
+    #output { border: 1px solid #ccc; padding: 10px; min-height: 50px; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Vérificateur de Compatibilité NFC</h1>
-            <p class="subtitle">Testez si votre appareil prend en charge la technologie NFC</p>
-        </header>
-        
-        <div class="content">
-            <div class="status-card">
-                <div class="status-title">
-                    <span class="status-icon">📱</span>
-                    <h2>Statut de compatibilité NFC</h2>
-                </div>
-                
-                <div id="compatibility-status">
-                    <p>Vérification en cours...</p>
-                </div>
-                
-                <div class="details" id="compatibility-details">
-                    <!-- Les détails de compatibilité seront affichés ici -->
-                </div>
-            </div>
-            
-            <div class="scan-section" id="scan-section">
-                <h3 class="info-title">Test de lecture NFC</h3>
-                <div id="nfc-message" class="nfc-message">
-                    Prêt à scanner un tag NFC...
-                </div>
-                <button class="action-btn" id="scan-btn">Démarrer la lecture NFC</button>
-                <button class="action-btn" id="stop-scan-btn" style="display: none; background: #6c757d;">Arrêter la lecture</button>
-            </div>
-            
-            <div class="info-section">
-                <h3 class="info-title">À propos de la technologie NFC</h3>
-                <ul class="info-list">
-                    <li>La NFC (Near Field Communication) permet la communication sans contact entre appareils à courte distance.</li>
-                    <li>Elle est utilisée pour les paiements mobiles, le partage de données et l'automatisation de tâches.</li>
-                    <li>La plupart des smartphones Android récents prennent en charge la NFC.</li>
-                    <li>Les iPhones prennent en charge la NFC à partir de l'iPhone 6, mais avec des limitations sur les applications iOS.</li>
-                    <li>L'API Web NFC nécessite HTTPS et un navigateur compatible (Chrome/Edge sur Android).</li>
-                </ul>
-            </div>
-            
-            <button class="action-btn" id="retry-btn">Réessayer la vérification</button>
-        </div>
-        
-        <footer>
-            <p>Vérificateur de Compatibilité NFC &copy; 2023</p>
-        </footer>
-    </div>
+  <h1>Lecteur NFC</h1>
+  <p id="status">Vérification des capacités NFC...</p>
+  <button id="scanBtn">📡 Démarrer le scan</button>
+  <h3>Données du tag :</h3>
+  <pre id="output"></pre>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const compatibilityStatus = document.getElementById('compatibility-status');
-            const compatibilityDetails = document.getElementById('compatibility-details');
-            const retryBtn = document.getElementById('retry-btn');
-            const scanSection = document.getElementById('scan-section');
-            const scanBtn = document.getElementById('scan-btn');
-            const stopScanBtn = document.getElementById('stop-scan-btn');
-            const nfcMessage = document.getElementById('nfc-message');
-            
-            let ndefReader = null;
-            let isScanning = false;
-            
-            // Fonction pour vérifier la compatibilité NFC
-            async function checkNFCCompatibility() {
-                compatibilityStatus.innerHTML = '<p>Vérification en cours...</p>';
-                compatibilityDetails.innerHTML = '';
-                scanSection.style.display = 'none';
-                
-                // Vérifier si l'API Web NFC est disponible
-                const isWebNFCSupported = 'NDEFReader' in window;
-                
-                // Vérifier le navigateur et la plateforme
-                const userAgent = navigator.userAgent;
-                const platform = navigator.platform;
-                
-                // Détecter le type d'appareil
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-                const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
-                const isAndroid = /Android/i.test(userAgent);
-                
-                // Détecter le navigateur
-                const isChrome = /Chrome/.test(userAgent) && /Google Inc/.test(navigator.vendor);
-                const isEdge = /Edg/.test(userAgent);
-                const isFirefox = /Firefox/.test(userAgent);
-                const isSafari = /Safari/.test(userAgent) && /Apple Computer/.test(navigator.vendor);
-                
-                // Vérification HTTPS
-                const isHTTPS = window.location.protocol === 'https:';
-                
-                // Construire le rapport de compatibilité
-                let statusHTML = '';
-                let detailsHTML = '';
-                
-                if (isWebNFCSupported) {
-                    statusHTML = '<p style="color: #28a745; font-weight: bold;">✅ Votre appareil semble compatible avec la technologie NFC!</p>';
-                    
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">API Web NFC</span>
-                            <span class="detail-value supported">Supportée</span>
-                        </div>
-                    `;
-                    
-                    // Afficher la section de test NFC
-                    scanSection.style.display = 'block';
-                } else {
-                    statusHTML = '<p style="color: #dc3545; font-weight: bold;">❌ Votre appareil ne semble pas compatible avec la technologie NFC.</p>';
-                    
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">API Web NFC</span>
-                            <span class="detail-value not-supported">Non supportée</span>
-                        </div>
-                    `;
-                }
-                
-                // Ajouter les détails sur le navigateur
-                detailsHTML += `
-                    <div class="detail-item">
-                        <span class="detail-label">Navigateur</span>
-                        <span class="detail-value">${navigator.userAgent.split(' ').pop()}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Plateforme</span>
-                        <span class="detail-value">${platform}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Type d'appareil</span>
-                        <span class="detail-value">${isMobile ? 'Mobile' : 'Desktop'}</span>
-                    </div>
-                `;
-                
-                // Ajouter des informations spécifiques selon le navigateur
-                if (isChrome) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Navigateur Chrome</span>
-                            <span class="detail-value supported">Détecté</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Version Chrome requise</span>
-                            <span class="detail-value">89+ (pour l'API Web NFC)</span>
-                        </div>
-                    `;
-                } else if (isEdge) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Navigateur Edge</span>
-                            <span class="detail-value supported">Détecté</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Version Edge requise</span>
-                            <span class="detail-value">89+ (pour l'API Web NFC)</span>
-                        </div>
-                    `;
-                } else if (isFirefox) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Navigateur Firefox</span>
-                            <span class="detail-value">Détecté</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Support Web NFC</span>
-                            <span class="detail-value not-supported">Non supporté actuellement</span>
-                        </div>
-                    `;
-                } else if (isSafari) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Navigateur Safari</span>
-                            <span class="detail-value">Détecté</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Support Web NFC</span>
-                            <span class="detail-value not-supported">Non supporté actuellement</span>
-                        </div>
-                    `;
-                }
-                
-                // Informations spécifiques pour iOS
-                if (isIOS) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Appareil iOS</span>
-                            <span class="detail-value">Détecté</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">NFC natif</span>
-                            <span class="detail-value supported">Disponible (iPhone 7+)</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">API Web NFC</span>
-                            <span class="detail-value not-supported">Non disponible dans Safari</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Solution</span>
-                            <span class="detail-value">Utilisez une application dédiée pour lire les tags NFC</span>
-                        </div>
-                    `;
-                }
-                
-                // Informations spécifiques pour Android
-                if (isAndroid) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Appareil Android</span>
-                            <span class="detail-value">Détecté</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">NFC matériel</span>
-                            <span class="detail-value supported">Généralement disponible</span>
-                        </div>
-                    `;
-                }
-                
-                // Vérification HTTPS
-                detailsHTML += `
-                    <div class="detail-item">
-                        <span class="detail-label">Connexion sécurisée (HTTPS)</span>
-                        <span class="detail-value ${isHTTPS ? 'supported' : 'not-supported'}">${isHTTPS ? 'Oui' : 'Non'}</span>
-                    </div>
-                `;
-                
-                // Exigences pour l'API Web NFC
-                if (!isHTTPS && isWebNFCSupported) {
-                    detailsHTML += `
-                        <div class="detail-item">
-                            <span class="detail-label">Attention</span>
-                            <span class="detail-value not-supported">L'API Web NFC nécessite HTTPS pour fonctionner</span>
-                        </div>
-                    `;
-                }
-                
-                compatibilityStatus.innerHTML = statusHTML;
-                compatibilityDetails.innerHTML = detailsHTML;
+  <script>
+    const statusEl = document.getElementById("status");
+    const outputEl = document.getElementById("output");
+    const btn = document.getElementById("scanBtn");
+
+    // Vérifie si Web NFC est disponible
+    if ("NDEFReader" in window) {
+      statusEl.textContent = "✅ NFC disponible sur cet appareil.";
+    } else {
+      statusEl.textContent = "❌ NFC non supporté par ce navigateur/appareil.";
+      btn.disabled = true;
+    }
+
+    // Fonction de scan
+    async function startScan() {
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        statusEl.textContent = "📡 Approchez un tag NFC...";
+
+        ndef.onreading = event => {
+          let message = "";
+          for (const record of event.message.records) {
+            if (record.recordType === "text") {
+              const text = new TextDecoder(record.encoding).decode(record.data);
+              message += `Texte : ${text}\n`;
+            } else if (record.recordType === "url") {
+              const url = new TextDecoder().decode(record.data);
+              message += `URL : ${url}\n`;
+            } else {
+              message += `Record type ${record.recordType}\n`;
             }
-            
-            // Fonction pour démarrer la lecture NFC
-            async function startNFCScan() {
-                if (!('NDEFReader' in window)) {
-                    nfcMessage.textContent = "L'API Web NFC n'est pas supportée par votre navigateur.";
-                    nfcMessage.className = "nfc-message nfc-error";
-                    return;
-                }
-                
-                try {
-                    ndefReader = new NDEFReader();
-                    
-                    // Démarrer la lecture
-                    await ndefReader.scan();
-                    
-                    isScanning = true;
-                    scanBtn.style.display = 'none';
-                    stopScanBtn.style.display = 'block';
-                    scanSection.classList.add('scan-active');
-                    nfcMessage.textContent = "Approchez un tag NFC de votre appareil...";
-                    nfcMessage.className = "nfc-message nfc-warning";
-                    
-                    // Événement lorsque le tag NFC est détecté
-                    ndefReader.addEventListener("reading", ({ message, serialNumber }) => {
-                        nfcMessage.innerHTML = `
-                            <strong>Tag NFC détecté!</strong><br>
-                            Numéro de série: ${serialNumber}<br>
-                            Nombre d'enregistrements: ${message.records.length}
-                        `;
-                        nfcMessage.className = "nfc-message nfc-success";
-                        
-                        // Afficher les détails des enregistrements
-                        message.records.forEach((record, index) => {
-                            const recordInfo = document.createElement('div');
-                            recordInfo.innerHTML = `
-                                <strong>Enregistrement ${index + 1}:</strong><br>
-                                Type: ${record.recordType}<br>
-                                MIME: ${record.mediaType || 'N/A'}<br>
-                                Données: ${record.data ? new TextDecoder().decode(record.data) : 'N/A'}
-                            `;
-                            nfcMessage.appendChild(recordInfo);
-                        });
-                    });
-                    
-                    // Événement en cas d'erreur de lecture
-                    ndefReader.addEventListener("readingerror", () => {
-                        nfcMessage.textContent = "Erreur lors de la lecture du tag NFC. Veuillez réessayer.";
-                        nfcMessage.className = "nfc-message nfc-error";
-                    });
-                    
-                } catch (error) {
-                    console.error("Erreur NFC:", error);
-                    
-                    if (error.name === "NotAllowedError") {
-                        nfcMessage.textContent = "Permission refusée. Veuillez autoriser l'accès NFC dans les paramètres de votre navigateur.";
-                    } else if (error.name === "NotSupportedError") {
-                        nfcMessage.textContent = "La technologie NFC n'est pas supportée par votre appareil.";
-                    } else {
-                        nfcMessage.textContent = `Erreur: ${error.message}`;
-                    }
-                    
-                    nfcMessage.className = "nfc-message nfc-error";
-                    isScanning = false;
-                    scanBtn.style.display = 'block';
-                    stopScanBtn.style.display = 'none';
-                    scanSection.classList.remove('scan-active');
-                }
-            }
-            
-            // Fonction pour arrêter la lecture NFC
-            function stopNFCScan() {
-                if (ndefReader && isScanning) {
-                    // L'API NDEFReader n'a pas de méthode stop() explicite,
-                    // donc nous réinitialisons simplement le lecteur
-                    ndefReader = null;
-                    isScanning = false;
-                    scanBtn.style.display = 'block';
-                    stopScanBtn.style.display = 'none';
-                    scanSection.classList.remove('scan-active');
-                    nfcMessage.textContent = "Lecture NFC arrêtée. Cliquez sur 'Démarrer la lecture NFC' pour recommencer.";
-                    nfcMessage.className = "nfc-message nfc-warning";
-                }
-            }
-            
-            // Vérifier la compatibilité au chargement de la page
-            checkNFCCompatibility();
-            
-            // Ajouter un écouteur d'événement pour le bouton de réessai
-            retryBtn.addEventListener('click', checkNFCCompatibility);
-            
-            // Ajouter un écouteur pour le bouton de scan NFC
-            scanBtn.addEventListener('click', startNFCScan);
-            
-            // Ajouter un écouteur pour le bouton d'arrêt du scan NFC
-            stopScanBtn.addEventListener('click', stopNFCScan);
-        });
-    </script>
+          }
+          outputEl.textContent = message || "Tag détecté, mais vide.";
+        };
+
+        ndef.onreadingerror = () => {
+          statusEl.textContent = "⚠️ Erreur de lecture NFC.";
+        };
+      } catch (error) {
+        statusEl.textContent = "❌ Erreur : " + error;
+      }
+    }
+
+    btn.addEventListener("click", startScan);
+  </script>
 </body>
 </html>
