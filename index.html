@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickShare - Partage Instantané</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <title>Lecteur NFC</title>
     <style>
         * {
             margin: 0;
@@ -15,305 +14,472 @@
         
         body {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 2rem;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            max-width: 800px;
             width: 100%;
-            max-width: 500px;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
         }
         
         header {
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
-            color: white;
-            padding: 30px 20px;
             text-align: center;
+            margin-bottom: 2rem;
         }
         
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
-        .content {
-            padding: 30px;
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
         }
         
-        .form-group {
-            margin-bottom: 20px;
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        label {
-            display: block;
-            margin-bottom: 8px;
+        .card h2 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 i {
+            font-size: 1.5rem;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ff4757;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-text {
             font-weight: 600;
-            color: #333;
-        }
-        
-        textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            min-height: 120px;
-            resize: none;
-            font-size: 1rem;
         }
         
         .btn {
-            background: linear-gradient(to right, #00c853, #64dd17);
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
             color: white;
             border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 50px;
             cursor: pointer;
-            margin: 10px 0;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto;
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
         }
         
-        .btn.secondary {
-            background: linear-gradient(to right, #757575, #9e9e9e);
+        .btn:active {
+            transform: translateY(1px);
         }
         
-        .qr-container {
-            text-align: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: #f5f5f5;
+        .btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .data-display {
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-box ul {
+            padding-left: 1.5rem;
+        }
+        
+        .info-box li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .hidden {
             display: none;
         }
         
-        #qrCode {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-            padding: 10px;
-            background: white;
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+            }
+            
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(255, 71, 87, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+            }
         }
         
-        .instructions {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 0.9rem;
+        .success {
+            background-color: #2ed573 !important;
         }
         
-        .step {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
+        .reading {
+            background-color: #ffa502 !important;
         }
         
-        .step-number {
-            width: 25px;
-            height: 25px;
-            background: #42a5f5;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-            font-weight: bold;
+        .tag-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
         }
         
-        .compatibility {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
+        .tag-info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.8rem;
+            border-radius: 8px;
         }
         
-        .device {
-            text-align: center;
+        .tag-info-label {
             font-size: 0.8rem;
+            opacity: 0.8;
         }
         
-        .device i {
-            font-size: 1.5rem;
-            color: #42a5f5;
+        .tag-info-value {
+            font-weight: 600;
+            margin-top: 0.3rem;
         }
         
         footer {
+            margin-top: 2rem;
             text-align: center;
-            padding: 15px;
-            background: #f5f5f5;
-            font-size: 0.8rem;
-            color: #666;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
+    <header>
+        <h1>Lecteur NFC</h1>
+        <p class="subtitle">Scannez vos tags NFC pour en afficher le contenu</p>
+    </header>
+    
     <div class="container">
-        <header>
-            <h1>QuickShare</h1>
-            <p>Partage instantané sans contact</p>
-        </header>
+        <div class="card">
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 12H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 9V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Statut du lecteur
+            </h2>
+            
+            <div class="status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <div class="status-text" id="statusText">En attente d'activation</div>
+            </div>
+            
+            <button class="btn" id="startBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 8V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Démarrer la lecture NFC
+            </button>
+            
+            <button class="btn hidden" id="stopBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 9L9 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 9L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Arrêter la lecture
+            </button>
+        </div>
         
-        <div class="content">
-            <div class="form-group">
-                <label for="message">Informations à partager :</label>
-                <textarea id="message" placeholder="Écrivez ici ce que vous souhaitez partager...">Mon numéro: 0606060606
-Disponible de 12h30 à 14h00
-Autres informations...</textarea>
+        <div class="card">
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Données du tag NFC
+            </h2>
+            
+            <div id="tagInfo" class="tag-info hidden">
+                <div class="tag-info-item">
+                    <div class="tag-info-label">Type de tag</div>
+                    <div class="tag-info-value" id="tagType">-</div>
+                </div>
+                <div class="tag-info-item">
+                    <div class="tag-info-label">Format des données</div>
+                    <div class="tag-info-value" id="dataFormat">-</div>
+                </div>
+                <div class="tag-info-item">
+                    <div class="tag-info-label">Langue</div>
+                    <div class="tag-info-value" id="language">-</div>
+                </div>
+                <div class="tag-info-item">
+                    <div class="tag-info-label">Taille des données</div>
+                    <div class="tag-info-value" id="dataSize">-</div>
+                </div>
             </div>
             
-            <button id="generateBtn" class="btn">Générer le QR Code</button>
-            <button id="shareBtn" class="btn secondary">Partager directement</button>
-            
-            <div class="qr-container" id="qrContainer">
-                <h3>Scannez ce code avec votre appareil photo</h3>
-                <div id="qrCode"></div>
-                <p>Ou montrez ce code à la personne</p>
-            </div>
-            
-            <div class="instructions">
-                <h3>Comment partager :</h3>
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div>Saisissez vos informations</div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div>Choisissez une méthode de partage</div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div>Le destinataire scanne ou reçoit directement</div>
-                </div>
-                
-                <div class="compatibility">
-                    <div class="device">
-                        <i class="fab fa-apple"></i>
-                        <div>iPhone</div>
-                    </div>
-                    <div class="device">
-                        <i class="fab fa-android"></i>
-                        <div>Android</div>
-                    </div>
-                    <div class="device">
-                        <i class="fas fa-mobile"></i>
-                        <div>Tous appareils</div>
-                    </div>
-                </div>
+            <div class="data-display" id="dataDisplay">
+                Aucune donnée NFC lue pour le moment.
             </div>
         </div>
         
-        <footer>
-            QuickShare - Solution universelle de partage sans contact
-        </footer>
+        <div class="info-box">
+            <h3>Comment utiliser ce lecteur NFC</h3>
+            <ul>
+                <li>Cliquez sur "Démarrer la lecture NFC" pour activer le lecteur</li>
+                <li>Approchez un tag NFC de votre appareil (à environ 1-2 cm)</li>
+                <li>Les données du tag s'afficheront automatiquement</li>
+                <li>Cliquez sur "Arrêter la lecture" pour désactiver le lecteur</li>
+            </ul>
+            
+            <div style="margin-top: 1rem;">
+                <strong>Note :</strong> Cette fonctionnalité nécessite un navigateur compatible Web NFC (Chrome pour Android) et un appareil avec un lecteur NFC.
+            </div>
+        </div>
     </div>
+    
+    <footer>
+        <p>Application Lecteur NFC - Développée pour un jeu</p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const messageInput = document.getElementById('message');
-            const generateBtn = document.getElementById('generateBtn');
-            const shareBtn = document.getElementById('shareBtn');
-            const qrContainer = document.getElementById('qrContainer');
-            const qrCodeElement = document.getElementById('qrCode');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const dataDisplay = document.getElementById('dataDisplay');
+            const tagInfo = document.getElementById('tagInfo');
+            const tagType = document.getElementById('tagType');
+            const dataFormat = document.getElementById('dataFormat');
+            const language = document.getElementById('language');
+            const dataSize = document.getElementById('dataSize');
             
-            let currentData = '';
+            let nfcReader = null;
+            let isReading = false;
             
-            // Générer un QR Code
-            generateBtn.addEventListener('click', () => {
-                const message = messageInput.value.trim();
-                if (!message) {
-                    alert('Veuillez saisir un message à partager');
-                    return;
+            // Vérifier la compatibilité NFC
+            if (!('NDEFReader' in window)) {
+                statusText.textContent = 'Web NFC non supporté par votre navigateur';
+                startBtn.disabled = true;
+                startBtn.innerHTML = 'NFC non supporté';
+                return;
+            }
+            
+            // Démarrer la lecture NFC
+            startBtn.addEventListener('click', async () => {
+                try {
+                    nfcReader = new NDEFReader();
+                    await nfcReader.scan();
+                    
+                    isReading = true;
+                    updateUI();
+                    
+                    nfcReader.addEventListener('reading', ({ message, serialNumber }) => {
+                        handleNFCMessage(message, serialNumber);
+                    });
+                    
+                    nfcReader.addEventListener('readingerror', () => {
+                        statusText.textContent = 'Erreur lors de la lecture du tag';
+                        statusIndicator.classList.remove('reading');
+                        statusIndicator.classList.add('error');
+                    });
+                    
+                } catch (error) {
+                    console.error('Erreur NFC:', error);
+                    statusText.textContent = `Erreur: ${error.message}`;
+                    statusIndicator.classList.remove('reading');
                 }
+            });
+            
+            // Arrêter la lecture NFC
+            stopBtn.addEventListener('click', () => {
+                if (nfcReader) {
+                    // Dans l'API Web NFC actuelle, il n'y a pas de méthode pour arrêter explicitement
+                    // On simule l'arrêt en réinitialisant l'état
+                    isReading = false;
+                    updateUI();
+                    statusText.textContent = 'Lecture arrêtée';
+                    statusIndicator.classList.remove('reading', 'success');
+                }
+            });
+            
+            // Mettre à jour l'interface utilisateur
+            function updateUI() {
+                if (isReading) {
+                    startBtn.classList.add('hidden');
+                    stopBtn.classList.remove('hidden');
+                    statusText.textContent = 'En attente d\'un tag NFC...';
+                    statusIndicator.classList.add('reading');
+                    statusIndicator.classList.remove('success');
+                } else {
+                    startBtn.classList.remove('hidden');
+                    stopBtn.classList.add('hidden');
+                    statusText.textContent = 'En attente d\'activation';
+                    statusIndicator.classList.remove('reading', 'success');
+                }
+            }
+            
+            // Traiter le message NFC
+            function handleNFCMessage(message, serialNumber) {
+                statusText.textContent = 'Tag NFC détecté!';
+                statusIndicator.classList.remove('reading');
+                statusIndicator.classList.add('success');
                 
-                currentData = message;
-                qrContainer.style.display = 'block';
+                // Afficher les informations de base du tag
+                tagInfo.classList.remove('hidden');
+                tagType.textContent = serialNumber ? `UID: ${serialNumber}` : 'Inconnu';
                 
-                // Générer le QR Code
-                QRCode.toCanvas(qrCodeElement, message, {
-                    width: 200,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
+                let displayText = `Tag NFC détecté!\n\n`;
+                displayText += `Nombre d'enregistrements: ${message.records.length}\n\n`;
+                
+                // Traiter chaque enregistrement
+                message.records.forEach((record, index) => {
+                    displayText += `=== Enregistrement ${index + 1} ===\n`;
+                    displayText += `Type: ${record.recordType}\n`;
+                    
+                    if (record.mediaType) {
+                        displayText += `Type de média: ${record.mediaType}\n`;
+                        dataFormat.textContent = record.mediaType;
                     }
-                }, (error) => {
-                    if (error) {
-                        console.error('Erreur QR Code:', error);
-                        alert('Erreur lors de la génération du QR Code');
+                    
+                    if (record.lang) {
+                        displayText += `Langue: ${record.lang}\n`;
+                        language.textContent = record.lang;
                     }
+                    
+                    // Décodeur pour différents types d'enregistrements
+                    const textDecoder = new TextDecoder();
+                    
+                    switch (record.recordType) {
+                        case 'text':
+                            displayText += `Contenu: ${textDecoder.decode(record.data)}\n`;
+                            break;
+                            
+                        case 'url':
+                            displayText += `URL: ${textDecoder.decode(record.data)}\n`;
+                            break;
+                            
+                        case 'mime':
+                            if (record.mediaType === 'application/json') {
+                                try {
+                                    const jsonData = JSON.parse(textDecoder.decode(record.data));
+                                    displayText += `Données JSON: ${JSON.stringify(jsonData, null, 2)}\n`;
+                                } catch (e) {
+                                    displayText += `Données: ${textDecoder.decode(record.data)}\n`;
+                                }
+                            } else if (record.mediaType.startsWith('text/')) {
+                                displayText += `Contenu: ${textDecoder.decode(record.data)}\n`;
+                            } else {
+                                displayText += `Données brutes (${record.data.byteLength} octets)\n`;
+                            }
+                            break;
+                            
+                        case 'empty':
+                            displayText += `Tag vide\n`;
+                            break;
+                            
+                        default:
+                            displayText += `Type non supporté: ${record.recordType}\n`;
+                            displayText += `Données: ${textDecoder.decode(record.data)}\n`;
+                    }
+                    
+                    displayText += `\n`;
                 });
-            });
-            
-            // Partager directement via l'API Web Share
-            shareBtn.addEventListener('click', async () => {
-                const message = messageInput.value.trim();
-                if (!message) {
-                    alert('Veuillez saisir un message à partager');
-                    return;
-                }
                 
-                currentData = message;
+                dataDisplay.textContent = displayText;
+                dataSize.textContent = `${new Blob([displayText]).size} octets`;
                 
-                try {
-                    if (navigator.share) {
-                        await navigator.share({
-                            title: 'Informations QuickShare',
-                            text: message,
-                            url: window.location.href
-                        });
-                    } else {
-                        // Fallback pour les navigateurs sans Web Share API
-                        await copyToClipboard(message);
-                        alert('Message copié dans le presse-papiers ! Collez-le dans une messagerie.');
+                // Réinitialiser après 5 secondes
+                setTimeout(() => {
+                    if (isReading) {
+                        statusText.textContent = 'En attente d\'un tag NFC...';
+                        statusIndicator.classList.remove('success');
+                        statusIndicator.classList.add('reading');
                     }
-                } catch (err) {
-                    console.log('Partage annulé:', err);
-                    // Fallback si l'utilisateur annule le partage
-                    await copyToClipboard(message);
-                    alert('Message copié dans le presse-papiers ! Collez-le où vous voulez.');
-                }
-            });
-            
-            // Copier dans le presse-papiers
-            async function copyToClipboard(text) {
-                try {
-                    await navigator.clipboard.writeText(text);
-                    return true;
-                } catch (err) {
-                    // Fallback pour les anciens navigateurs
-                    const textarea = document.createElement('textarea');
-                    textarea.value = text;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    const result = document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                    return result;
-                }
-            }
-            
-            // Détection automatique du presse-papiers
-            if (!navigator.clipboard) {
-                console.log('Clipboard API non supportée');
-            }
-            
-            // Vérifier la compatibilité Web Share
-            if (!navigator.share) {
-                shareBtn.textContent = "Copier le message";
+                }, 5000);
             }
         });
     </script>
