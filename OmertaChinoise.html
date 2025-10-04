@@ -3,136 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vidéo en boucle</title>
+    <title></title>
     <style>
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background-color: #000;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        #video-container {
-            position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
+            background-color: black;
         }
         
         video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        #overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            transition: opacity 0.5s;
-            z-index: 10;
-        }
-        
-        #overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        #play-button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 18px;
-            margin: 20px 0;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        
-        #play-button:hover {
-            background-color: #45a049;
-        }
-        
-        .instructions {
-            text-align: center;
-            max-width: 80%;
-            margin-top: 20px;
-            line-height: 1.5;
+            object-fit: contain;
         }
     </style>
 </head>
 <body>
-    <div id="video-container">
-        <video id="videoPlayer" loop>
-            <source src="https://lost-cyrano.github.io/NFC/f15c728cb6e47bf4434fedfca9744899.mp4" type="video/mp4">
-            Votre navigateur ne supporte pas la lecture de vidéos.
-        </video>
-        
-        <div id="overlay">
-            <h1>Vidéo en boucle</h1>
-            <p class="instructions">Cliquez sur le bouton ci-dessous pour lancer la vidéo avec le son</p>
-            <button id="play-button">Lancer la vidéo</button>
-            <p class="instructions">La vidéo se répétera automatiquement</p>
-        </div>
-    </div>
+    <video id="videoPlayer" loop>
+        <source src="https://lost-cyrano.github.io/NFC/f15c728cb6e47bf4434fedfca9744899.mp4" type="video/mp4">
+    </video>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('videoPlayer');
-            const overlay = document.getElementById('overlay');
-            const playButton = document.getElementById('play-button');
             
-            // Essayer de lancer la vidéo automatiquement avec son
-            const tryAutoplay = async () => {
-                try {
-                    video.muted = false;
-                    await video.play();
-                    // Si ça fonctionne, masquer l'overlay
-                    overlay.classList.add('hidden');
-                } catch (error) {
-                    console.log("Lecture automatique avec son bloquée:", error);
-                    // Si échec, on garde l'overlay visible pour l'interaction utilisateur
-                }
-            };
-            
-            // Tenter la lecture automatique au chargement
-            tryAutoplay();
-            
-            // Gérer le clic sur le bouton de lecture
-            playButton.addEventListener('click', function() {
+            // Délai de 1 seconde avant de lancer la vidéo avec son
+            setTimeout(() => {
                 video.muted = false;
-                video.play();
-                overlay.classList.add('hidden');
-            });
-            
-            // Redémarrer la vidéo quand elle arrive à la fin (boucle)
-            video.addEventListener('ended', function() {
-                video.currentTime = 0;
-                video.play();
-            });
+                video.play().catch(error => {
+                    // Si échec, on essaie sans son
+                    console.log("Lecture avec son bloquée, tentative sans son");
+                    video.muted = true;
+                    video.play();
+                });
+            }, 1000);
         });
     </script>
 </body>
