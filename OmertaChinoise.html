@@ -3,56 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page avec musique de fond</title>
+    <title>Vidéo en boucle</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
+            width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            background-color: black;
         }
         
-        #background-video {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -1;
+        #video-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
-        .content {
-            position: relative;
-            z-index: 1;
-            color: white;
-            text-align: center;
-            padding: 20px;
+        video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
     </style>
 </head>
 <body>
-    <!-- Vidéo/musique de fond -->
-    <video id="background-video" autoplay loop muted>
-        <source src="ssstik.io_1759518899176.mp4" type="video/mp4">
-        Votre navigateur ne supporte pas la lecture de vidéos.
-    </video>
-    
-    <div class="content">
-        <!-- Le contenu de votre page va ici -->
-        <h1>Bienvenue sur ma page</h1>
-        <p>La musique se joue automatiquement en arrière-plan.</p>
+    <div id="video-container">
+        <video id="videoPlayer" autoplay muted loop>
+            <source src="https://lost-cyrano.github.io/NFC/f15c728cb6e47bf4434fedfca9744899.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas la lecture de vidéos.
+        </video>
     </div>
 
     <script>
-        // Script pour s'assurer que la vidéo se joue automatiquement
+        // S'assurer que la vidéo démarre automatiquement
         document.addEventListener('DOMContentLoaded', function() {
-            var video = document.getElementById('background-video');
-            video.muted = true; // Nécessaire pour l'autoplay sur certains navigateurs
+            const video = document.getElementById('videoPlayer');
+            
+            // Tentative de lecture automatique
             video.play().catch(function(error) {
-                console.log("Erreur de lecture automatique:", error);
+                console.log("Lecture automatique bloquée:", error);
+                // Si la lecture automatique échoue, on peut afficher un message
+                // ou tenter une autre stratégie
             });
         });
     </script>
